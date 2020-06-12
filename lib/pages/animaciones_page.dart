@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 class AnimacionesPage extends StatelessWidget {
   @override
@@ -35,6 +36,10 @@ class _CuadradoAnimadoState extends State<CuadradoAnimado> with SingleTickerProv
 
   // Animaciones
   Animation<double> rotacion;
+  Animation<double> opacidad;
+  Animation<double> moverDerecha;
+  Animation<double> agrandar;
+  Animation<double> opacidadOut;
 
   // Ciclo vida 
   @override
@@ -45,8 +50,39 @@ class _CuadradoAnimadoState extends State<CuadradoAnimado> with SingleTickerProv
       duration: Duration(milliseconds: 4000)
     );
 
+
     // Grado de rotacion en tiempo estipulado por animation controller
-    rotacion = Tween(begin: 0.0, end: 2.0).animate(controller);
+    rotacion = Tween(begin: 0.0, end: 2.0 * math.pi).animate(
+      CurvedAnimation(curve: Curves.easeOut, parent: controller)
+    );
+
+    opacidad = Tween(begin: 0.1, end: 1.0).animate(
+      CurvedAnimation(curve: Interval(0, 0.25, curve: Curves.easeOut), parent: controller)
+    );
+
+    opacidadOut = Tween(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(curve: Interval(0.75, 1, curve: Curves.easeOut), parent: controller)
+    );
+
+
+    moverDerecha = Tween(begin: 0.0, end: 200.0).animate(
+      CurvedAnimation(curve: Curves.easeOut, parent: controller)
+    );
+
+     agrandar = Tween(begin: 0.0, end: 2.0).animate(
+      CurvedAnimation(curve: Curves.easeOut, parent: controller)
+    );
+
+
+    controller.addListener(() {
+      if ( controller.status == AnimationStatus.completed){
+         controller.repeat();
+        // controller.reset();
+      }
+      // } else if (controller.status == AnimationStatus.dismissed) {
+      //   controller.forward();
+      // }
+    });
 
     super.initState();
   }
@@ -63,12 +99,19 @@ class _CuadradoAnimadoState extends State<CuadradoAnimado> with SingleTickerProv
     controller.forward();
     return AnimatedBuilder(
       animation: controller,
-      // child: _Rectangulo(),
+      child: _Rectangulo(),
       builder: (BuildContext context, Widget child) {
 
-        return Transform.rotate(
-          angle: rotacion.value,
-          child: _Rectangulo());
+        return Transform.translate(
+          offset: Offset(moverDerecha.value, 0),
+           child: Transform.rotate(
+            angle: rotacion.value,
+            child: Opacity(
+              opacity:  opacidad.value - opacidadOut.value,
+              child: Transform.scale(
+                scale: agrandar.value,
+                child: child),)),
+        );
       
       },
   );
